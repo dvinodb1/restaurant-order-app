@@ -140,36 +140,32 @@ document.getElementById('submit-order').addEventListener('click', () => {
     .map(([name, { qty }]) => `${name} (x${qty})`)
     .join(', ');
 
-  // Disable button to prevent double-click
   const submitBtn = document.getElementById('submit-order');
   const originalText = submitBtn.textContent;
   submitBtn.disabled = true;
   submitBtn.textContent = '📤 Sending...';
 
-  // Send order (no-cors)
   fetch(ORDER_WEBHOOK_URL, {
     method: 'POST',
-    mode: 'no-cors', // ← Key: no CORS, but request still goes through
+    mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, phone, address, items })
   })
   .then(() => {
-    // Since no-cors hides response, we assume success after delay
     setTimeout(() => {
       showStatus('🎉 Order received! We’ll call you shortly.', 'success');
-      // Reset UI
+      // ✅ Now reset() works!
+      document.getElementById('order-form').reset(); // ← Works because it's a <form>
       cart = {};
-      document.getElementById('order-form').reset();
       document.getElementById('order-form').classList.add('hidden');
       document.getElementById('cart').classList.add('hidden');
       document.getElementById('menu-section').classList.remove('hidden');
       updateCartUI();
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
-    }, 800); // Small delay for UX
+    }, 800);
   })
   .catch((err) => {
-    // Only triggered by network-level failure (e.g., no internet)
     console.error('Submission failed:', err);
     showStatus('❌ Failed to send. Check your internet and try again.', 'error');
     submitBtn.disabled = false;
