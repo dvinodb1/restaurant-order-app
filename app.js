@@ -47,23 +47,16 @@ function parseCSV(csv) {
 // Load menu from Google Sheet
 async function loadMenu() {
   try {
+    console.log('Fetching menu from:', MENU_CSV_URL); // 👈 ADD THIS
     const res = await fetch(MENU_CSV_URL);
+    console.log('CSV Response status:', res.status); // 👈 ADD THIS
+    if (!res.ok) throw new Error('Failed to fetch CSV');
     const csvText = await res.text();
-    MENU = parseCSV(csvText).filter(item => 
-      item['Item Name'] && 
-      typeof item['Item Name'] === 'string' && 
-      item['Item Name'].trim() !== ''
-    );
-
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('menu-list').classList.remove('hidden');
-    document.getElementById('order-form').classList.remove('hidden');
-
-    renderMenu();
-    buildOrderCheckboxes();
+    console.log('Raw CSV:', csvText); // 👈 ADD THIS
+    // ... rest of your code
   } catch (err) {
-    console.error('Menu load failed:', err);
-    document.getElementById('loading').textContent = '⚠️ Failed to load menu. Please try again later.';
+    console.error('Menu load error:', err);
+    document.getElementById('loading').textContent = '❌ Menu unavailable. Check console for details.';
   }
 }
 
