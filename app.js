@@ -1,75 +1,155 @@
-// === CONFIG ===
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylwEnuPCibAsoQtpojMBwrh9KmUXmw1FdzFtwiMdbCJqlEtSplbJqV7_j5l_LblzeYUQ/exec';
-// Replace with your actual Google Apps Script Web App URL
+// === CONFIGURATION ===
+// 🔗 Replace with your PUBLISHED Google Sheet CSV URL (File > Share > Publish to web > CSV)
+const MENU_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSgt2py8ONY_7lLQcVsVQcnCO7lgpeIWT1bzUcvK0Vc-95Ll-27YbUTRdgH4XnBw5HhT_7IjUpGEeav/pub?gid=1477636374&single=true&output=csv';
 
-// Sample static menu (replace with dynamic fetch later if needed)
-const MENU = [
-  { name: "Margherita Pizza", price: 12 },
-  { name: "Chicken Burger", price: 10 },
-  { name: "Caesar Salad", price: 8 },
-  { name: "Garlic Bread", price: 5 }
-];
+// 🔗 Replace with your Google Apps Script Web App URL (from deployment)
+const ORDER_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbylwEnuPCibAsoQtpojMBwrh9KmUXmw1FdzFtwiMdbCJqlEtSplbJqV7_j5l_LblzeYUQ/exec';
 
-// Render menu
-const menuList = document.getElementById('menu-list');
-MENU.forEach(item => {
-  const li = document.createElement('li');
-  li.innerHTML = `<strong>${item.name}</strong> — $${item.price}`;
-  menuList.appendChild(li);
-});
+// =====================
 
-// Build order checkboxes
-const orderItemsDiv = document.getElementById('order-items');
-MENU.forEach((item, i) => {
-  const label = document.createElement('label');
-  label.innerHTML = `
-    <input type="checkbox" name="item" value="${item.name}|${item.price}"> 
-    ${item.name} ($${item.price})
-  `;
-  orderItemsDiv.appendChild(label);
-  orderItemsDiv.appendChild(document.createElement('br'));
-});
+let MENU = [];
 
-// Handle form submit
+// Parse CSV into array of objects
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n');
+  if (lines.length < 2) return [];
+  
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"(.*)"$/, '$1'));
+  return lines.slice(1).map(line => {
+    // Handle quoted fields (e.g., "Garlic Bread, Spicy")
+    const values = [];
+    let insideQuote = false;
+    let current = '';
+    for (let char of line) {
+      if (char === '"' && !insideQuote) insideQuote = true;
+      else if (char === '"' && insideQuote) insideQuote = false;
+      else if (char === ',' && !insideQuote) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim());
+
+    const item = {};
+    headers.forEach((header, i) => {
+      let val = values[i] || '';
+      if (header === 'Price' || header === 'Quantity') {
+        val = isNaN(val) ? 0 : Number(val);
+      }
+      item[header] = val;
+    });
+    return item;
+  });
+}
+
+// Load menu from Google Sheet
+async function loadMenu() {
+  try {
+    const res = await fetch(MENU_CSV_URL);
+    const csvText = await res.text();
+    MENU = parseCSV(csvText).filter(item => 
+      item['Item Name'] && 
+      typeof item['Item Name'] === 'string' && 
+      item['Item Name'].trim() !== ''
+    );
+
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('menu-list').classList.remove('hidden');
+    document.getElementById('order-form').classList.remove('hidden');
+
+    renderMenu();
+    buildOrderCheckboxes();
+  } catch (err) {
+    console.error('Menu load failed:', err);
+    document.getElementById('loading').textContent = '⚠️ Failed to load menu. Please try again later.';
+  }
+}
+
+function renderMenu() {
+  const ul = document.getElementById('menu-list');
+  ul.innerHTML = '';
+  if (MENU.length === 0) {
+    ul.innerHTML = '<li>No items available right now.</li>';
+    return;
+  }
+
+  MENU.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = `${item['Item Name']} — $${item.Price}`;
+    if (item.Quantity <= 0) {
+      li.classList.add('out-of-stock');
+      li.title = 'Out of stock';
+    }
+    ul.appendChild(li);
+  });
+}
+
+function buildOrderCheckboxes() {
+  const container = document.getElementById('order-items');
+  container.innerHTML = '';
+
+  const inStockItems = MENU.filter(item => item.Quantity > 0);
+  if (inStockItems.length === 0) {
+    container.innerHTML = '<p>All items are currently out of stock.</p>';
+    document.querySelector('button[type="submit"]').disabled = true;
+    return;
+  }
+
+  inStockItems.forEach(item => {
+    const label = document.createElement('label');
+    label.innerHTML = `
+      <input type="checkbox" name="item" value="${item['Item Name']}|${item.Price}">
+      ${item['Item Name']} ($${item.Price})
+    `;
+    container.appendChild(label);
+  });
+
+  document.querySelector('button[type="submit"]').disabled = false;
+}
+
+// Handle order submission
 document.getElementById('order-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const name = document.getElementById('name').value;
-  const phone = document.getElementById('phone').value;
-  const address = document.getElementById('address').value;
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const address = document.getElementById('address').value.trim();
 
-  const selectedItems = Array.from(document.querySelectorAll('input[name="item"]:checked'))
+  const selected = Array.from(document.querySelectorAll('input[name="item"]:checked'))
     .map(cb => cb.value);
 
-  if (selectedItems.length === 0) {
+  if (selected.length === 0) {
     showStatus('Please select at least one item.', 'error');
     return;
   }
 
-  const order = {
-    name,
-    phone,
-    address,
-    items: selectedItems.join(', ')
-  };
+  const order = { name, phone, address, items: selected.join('; ') };
 
   try {
-    const response = await fetch(APPS_SCRIPT_URL, {
+    // Use no-cors because Google Apps Script doesn't support full CORS
+    await fetch(ORDER_WEBHOOK_URL, {
       method: 'POST',
-      mode: 'no-cors' // Required for Google Apps Script (but limits response visibility)
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order)
     });
 
-    // Due to no-cors, we can't read response body — assume success
-    showStatus('Order submitted! We’ll call you soon. 🎉', 'success');
+    // Since no-cors hides response, we assume success
+    showStatus('🎉 Order received! We’ll call you shortly.', 'success');
     document.getElementById('order-form').reset();
     document.querySelectorAll('input[name="item"]:checked').forEach(el => el.checked = false);
   } catch (err) {
-    showStatus('Failed to send order. Try again.', 'error');
+    showStatus('❌ Failed to submit. Check your connection and try again.', 'error');
   }
 });
 
 function showStatus(message, type) {
-  const status = document.getElementById('status');
-  status.textContent = message;
-  status.className = `status-${type}`;
+  const el = document.getElementById('status');
+  el.textContent = message;
+  el.className = `status-${type}`;
 }
+
+// Start loading menu when page loads
+document.addEventListener('DOMContentLoaded', loadMenu);
