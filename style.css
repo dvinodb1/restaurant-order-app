@@ -1,54 +1,195 @@
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background: #f9f9f9;
-  color: #333;
+:root {
+  --primary: #d32f2f;
+  --light: #fff;
+  --bg: #f5f5f5;
+  --card-bg: #fff;
+  --text: #333;
+  --border: #eee;
 }
-.container { text-align: center; }
-h1 { color: #d32f2f; }
-input, textarea, button {
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+header {
+  text-align: center;
+  padding: 20px 0;
+  margin-bottom: 20px;
+}
+header h1 {
+  color: var(--primary);
+  font-size: 2.2rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.hidden { display: none; }
+
+/* Menu Grid */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.menu-item {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item h3 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.menu-item .price {
+  color: var(--primary);
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.menu-item .stock {
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.qty-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  background: var(--light);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.qty-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qty-display {
+  min-width: 32px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Cart */
+.cart {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  margin: 30px 0;
+}
+
+.cart h2 {
+  margin-bottom: 16px;
+  color: var(--primary);
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.cart-total {
+  text-align: right;
+  margin: 16px 0;
+  font-size: 1.2rem;
+}
+
+#checkout-btn {
   width: 100%;
   padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
-}
-button {
-  background: #4CAF50;
+  background: var(--primary);
   color: white;
-  font-weight: bold;
   border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
   cursor: pointer;
 }
-button:hover { background: #45a049; }
-button:disabled { background: #cccccc; cursor: not-allowed; }
-
-ul {
-  list-style: none;
-  padding: 0;
-  text-align: left;
+#checkout-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
-li {
-  padding: 12px;
-  margin: 8px 0;
+
+/* Order Form */
+.order-form {
   background: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.out-of-stock {
-  opacity: 0.5;
-  text-decoration: line-through;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
 
-#order-items label {
-  display: block;
-  text-align: left;
-  margin: 6px 0;
+.order-form input,
+.order-form textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
 }
-.hidden { display: none; }
-#loading { color: #666; }
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.form-actions #back-to-cart {
+  background: #f0f0f0;
+  color: var(--text);
+}
+.form-actions #submit-order {
+  background: var(--primary);
+  color: white;
+}
+
+/* Status Messages */
 .status-success { color: green; font-weight: bold; }
 .status-error { color: red; }
