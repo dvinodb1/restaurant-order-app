@@ -140,25 +140,31 @@ document.getElementById('submit-order').addEventListener('click', async () => {
     .map(([name, { qty }]) => `${name} (x${qty})`)
     .join(', ');
 
-  try {
-    await fetch(ORDER_WEBHOOK_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, address, items })
-    });
+ try {
+  const response = await fetch(ORDER_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, phone, address, items })
+  });
 
+  const result = await response.json(); // ✅ Now you can read the response!
+
+  if (result.success) {
     showStatus('🎉 Order placed! We’ll call you soon.', 'success');
-    // Reset
+    // Reset cart & form
     cart = {};
     document.getElementById('order-form').reset();
     document.getElementById('order-form').classList.add('hidden');
     document.getElementById('cart').classList.add('hidden');
     document.getElementById('menu-section').classList.remove('hidden');
     updateCartUI();
-  } catch (err) {
-    showStatus('❌ Failed to submit. Try again.', 'error');
+  } else {
+    throw new Error(result.error || 'Unknown error');
   }
+} catch (err) {
+  console.error('Submission error:', err);
+  showStatus('❌ Failed to submit. ' + (err.message || 'Please try again.'), 'error');
+}
 });
 
 function showStatus(message, type) {
