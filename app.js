@@ -5,10 +5,12 @@ const MENU_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSgt2py8ON
 // 🔗 Replace with your Google Apps Script Web App URL (from deployment)
 const ORDER_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzjJ8hdWZBNco8B7stc2ZA2nWkX90wSIi73ot_B_fGeseWUTXmKO1uf_GNVGmY70OksPA/exec';
 
+// ======================
+
 let MENU = [];
 let cart = {}; // { "Pizza": { qty: 2, price: 12 }, ... }
 
-// --- CSV Parsing (same as before) ---
+// --- CSV Parser ---
 function parseCSV(csv) {
   const lines = csv.trim().split('\n');
   if (lines.length < 2) return [];
@@ -37,12 +39,12 @@ async function loadMenu() {
     renderMenu();
     updateCartUI();
   } catch (err) {
-    console.error(err);
+    console.error('Menu load failed:', err);
     document.getElementById('loading').textContent = '❌ Failed to load menu.';
   }
 }
 
-// --- Render Menu with Qty Controls ---
+// --- Render Menu ---
 function renderMenu() {
   const grid = document.getElementById('menu-grid');
   grid.innerHTML = '';
@@ -81,7 +83,6 @@ function updateQty(itemName, delta) {
     cart[itemName] = { qty: newQty, price: item.Price };
   }
 
-  // Update UI
   document.getElementById(`qty-${itemName}`).textContent = newQty;
   updateCartUI();
 }
@@ -113,71 +114,66 @@ function updateCartUI() {
 }
 
 // --- Navigation & Order Submission ---
-document.getElementById('checkout-btn').addEventListener('click', () => {
+document.getElementById('checkout-btn')?.addEventListener('click', () => {
   document.getElementById('menu-section').classList.add('hidden');
   document.getElementById('cart').classList.add('hidden');
   document.getElementById('order-form').classList.remove('hidden');
 });
 
-document.getElementById('back-to-cart').addEventListener('click', () => {
+document.getElementById('back-to-cart')?.addEventListener('click', () => {
   document.getElementById('order-form').classList.add('hidden');
   document.getElementById('menu-section').classList.remove('hidden');
   document.getElementById('cart').classList.remove('hidden');
 });
 
-// Handle form submit
-document.getElementById('order-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
+document.getElementById('submit-order')?.addEventListener('click', async () => {
+  const name = document.getElementById('name')?.value.trim();
+  const phone = document.getElementById('phone')?.value.trim();
+  const address = document.getElementById('address')?.value.trim();
 
-  const name = document.getElementById('name').value;
-  const phone = document.getElementById('phone').value;
-  const address = document.getElementById('address').value;
-
-  const selectedItems = Array.from(document.querySelectorAll('input[name="item"]:checked'))
-    .map(cb => cb.value);
-
-  if (selectedItems.length === 0) {
-    showStatus('Please select at least one item.', 'error');
+  if (!name || !phone) {
+    showStatus('Please fill in name and phone.', 'error');
     return;
   }
 
-  const order = {
-    name,
-    phone,
-    address,
-    items: selectedItems.join(', ')
-  };
+  const items = Object.entries(cart)
+    .map(([name, { qty }]) => `${name} (x${qty})`)
+    .join(', ');
 
   try {
-    const response = await fetch(APPS_SCRIPT_URL, {
+    const response = await fetch(ORDER_WEBHOOK_URL, {
       method: 'POST',
-      mode: 'no-cors' // Required for Google Apps Script (but limits response visibility)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, address, items })
     });
 
-    // Due to no-cors, we can't read response body — assume success
-    showStatus('Order submitted! We’ll call you soon. 🎉', 'success');
-    document.getElementById('order-form').reset();
-    document.querySelectorAll('input[name="item"]:checked').forEach(el => el.checked = false);
+    const result = await response.json();
+    if (result.success) {
+      showStatus('🎉 Order placed! We’ll call you soon.', 'success');
+      // Reset
+      cart = {};
+      document.getElementById('order-form').reset();
+      document.getElementById('order-form').classList.add('hidden');
+      document.getElementById('cart').classList.add('hidden');
+      document.getElementById('menu-section').classList.remove('hidden');
+      updateCartUI();
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
   } catch (err) {
-    showStatus('Failed to send order. Try again.', 'error');
+    console.error('Submission error:', err);
+    showStatus('❌ Failed to submit. ' + (err.message || 'Please try again.'), 'error');
   }
 });
-
-function showStatus(message, type) {
-  const status = document.getElementById('status');
-  status.textContent = message;
-  status.className = `status-${type}`;
-}
 
 function showStatus(message, type) {
   const el = document.getElementById('status');
   el.textContent = message;
   el.className = `status-${type}`;
-  el.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Make updateQty available globally for inline onclick
+// Make updateQty globally accessible for inline onclick
 window.updateQty = updateQty;
 
-// Start
+// Start loading menu
 document.addEventListener('DOMContentLoaded', loadMenu);
