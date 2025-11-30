@@ -3,7 +3,7 @@
 const MENU_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSgt2py8ONY_7lLQcVsVQcnCO7lgpeIWT1bzUcvK0Vc-95Ll-27YbUTRdgH4XnBw5HhT_7IjUpGEeav/pub?gid=1477636374&single=true&output=csv';
 
 // 🔗 Replace with your Google Apps Script Web App URL (from deployment)
-const ORDER_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzRgtB1raz28rb_uhhBzrDdNqQx3aO44nrnG6r9hl8ULR1Njcf9eVkStUDRgca_06m-wg/exec';
+const ORDER_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyKeV28LDjVIm_Gl9Sb45oC7Z5G1u0fFRbD0Ls8QCAOT4FeOa5o1MLv44BBGdPD8x0inw/exec';
 
 let MENU = [];
 let cart = {}; // { "Pizza": { qty: 2, price: 12 }, ... }
