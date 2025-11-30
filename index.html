@@ -31,16 +31,17 @@
     </div>
 
     <!-- Order Form -->
-    <div id="order-form" class="order-form hidden">
-      <h2>Complete Your Order</h2>
-      <input type="text" id="name" placeholder="Your Name" required />
-      <input type="tel" id="phone" placeholder="Phone Number" required />
-      <textarea id="address" placeholder="Delivery Address (optional)"></textarea>
-      <div class="form-actions">
-        <button type="button" id="back-to-cart">⬅️ Back to Cart</button>
-        <button type="button" id="submit-order">📤 Submit Order</button>
-      </div>
-    </div>
+<!-- Order Form (now a real <form>) -->
+<form id="order-form" class="order-form hidden">
+  <h2>Complete Your Order</h2>
+  <input type="text" id="name" placeholder="Your Name" required />
+  <input type="tel" id="phone" placeholder="Phone Number" required />
+  <textarea id="address" placeholder="Delivery Address (optional)"></textarea>
+  <div class="form-actions">
+    <button type="button" id="back-to-cart">⬅️ Back to Cart</button>
+    <button type="button" id="submit-order">📤 Submit Order</button>
+  </div>
+</form>
 
     <div id="status"></div>
   </div>
