@@ -53,7 +53,18 @@ async function loadMenu() {
     if (!res.ok) throw new Error('Failed to fetch CSV');
     const csvText = await res.text();
     console.log('Raw CSV:', csvText); // 👈 ADD THIS
-    // ... rest of your code
+     MENU = parseCSV(csvText).filter(item => 
+      item['Item Name'] && 
+      typeof item['Item Name'] === 'string' && 
+      item['Item Name'].trim() !== ''
+    );
+
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('menu-list').classList.remove('hidden');
+    document.getElementById('order-form').classList.remove('hidden');
+
+    renderMenu();
+    buildOrderCheckboxes();
   } catch (err) {
     console.error('Menu load error:', err);
     document.getElementById('loading').textContent = '❌ Menu unavailable. Check console for details.';
