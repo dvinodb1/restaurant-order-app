@@ -147,9 +147,6 @@ document.getElementById('submit-order')?.addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, address, items })
     });
-
-    const result = await response.json();
-    if (result.success) {
       showStatus('🎉 Order placed! We’ll call you soon.', 'success');
       // Reset
       cart = {};
@@ -158,9 +155,6 @@ document.getElementById('submit-order')?.addEventListener('click', async () => {
       document.getElementById('cart').classList.add('hidden');
       document.getElementById('menu-section').classList.remove('hidden');
       updateCartUI();
-    } else {
-      throw new Error(result.error || 'Unknown error');
-    }
   } catch (err) {
     console.error('Submission error:', err);
     showStatus('❌ Failed to submit. ' + (err.message || 'Please try again.'), 'error');
