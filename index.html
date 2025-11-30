@@ -8,19 +8,39 @@
 </head>
 <body>
   <div class="container">
-    <h1>🍽️ My Restaurant</h1>
-    
-    <div id="loading">Loading menu...</div>
-    <ul id="menu-list" class="hidden"></ul>
+    <header>
+      <h1>🍜 My Restaurant</h1>
+      <p>Delicious food, ready in 30 mins!</p>
+    </header>
 
-    <h2>Place Your Order</h2>
-    <form id="order-form" class="hidden">
+    <div id="loading" class="loading">Loading menu...</div>
+    
+    <main id="menu-section" class="hidden">
+      <h2>Today's Menu</h2>
+      <div id="menu-grid" class="menu-grid"></div>
+    </main>
+
+    <!-- Cart Summary -->
+    <div id="cart" class="cart hidden">
+      <h2>Your Order</h2>
+      <div id="cart-items"></div>
+      <div class="cart-total">
+        <strong>Total: $<span id="total-amount">0</span></strong>
+      </div>
+      <button id="checkout-btn" disabled>✅ Place Order</button>
+    </div>
+
+    <!-- Order Form (Modal-style) -->
+    <div id="order-form" class="order-form hidden">
+      <h2>Complete Your Order</h2>
       <input type="text" id="name" placeholder="Your Name" required />
       <input type="tel" id="phone" placeholder="Phone Number" required />
       <textarea id="address" placeholder="Delivery Address (optional)"></textarea>
-      <div id="order-items"></div>
-      <button type="submit">✅ Submit Order</button>
-    </form>
+      <div class="form-actions">
+        <button type="button" id="back-to-cart">⬅️ Back to Cart</button>
+        <button type="button" id="submit-order">📤 Submit Order</button>
+      </div>
+    </div>
 
     <div id="status"></div>
   </div>
