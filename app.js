@@ -126,7 +126,7 @@ document.getElementById('back-to-cart')?.addEventListener('click', () => {
   document.getElementById('cart').classList.remove('hidden');
 });
 
-document.getElementById('submit-order')?.addEventListener('click', async () => {
+document.getElementById('submit-order').addEventListener('click', () => {
   const name = document.getElementById('name')?.value.trim();
   const phone = document.getElementById('phone')?.value.trim();
   const address = document.getElementById('address')?.value.trim();
@@ -140,25 +140,41 @@ document.getElementById('submit-order')?.addEventListener('click', async () => {
     .map(([name, { qty }]) => `${name} (x${qty})`)
     .join(', ');
 
-  try {
-    const response = await fetch(ORDER_WEBHOOK_URL, {
-      method: 'POST',
-      mode: 'no-cors' ,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, address, items })
-    });
-      showStatus('🎉 Order placed! We’ll call you soon.', 'success');
-      // Reset
+  // Disable button to prevent double-click
+  const submitBtn = document.getElementById('submit-order');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = '📤 Sending...';
+
+  // Send order (no-cors)
+  fetch(ORDER_WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors', // ← Key: no CORS, but request still goes through
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, phone, address, items })
+  })
+  .then(() => {
+    // Since no-cors hides response, we assume success after delay
+    setTimeout(() => {
+      showStatus('🎉 Order received! We’ll call you shortly.', 'success');
+      // Reset UI
       cart = {};
       document.getElementById('order-form').reset();
       document.getElementById('order-form').classList.add('hidden');
       document.getElementById('cart').classList.add('hidden');
       document.getElementById('menu-section').classList.remove('hidden');
       updateCartUI();
-  } catch (err) {
-    console.error('Submission error:', err);
-    showStatus('❌ Failed to submit. ' + (err.message || 'Please try again.'), 'error');
-  }
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }, 800); // Small delay for UX
+  })
+  .catch((err) => {
+    // Only triggered by network-level failure (e.g., no internet)
+    console.error('Submission failed:', err);
+    showStatus('❌ Failed to send. Check your internet and try again.', 'error');
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  });
 });
 
 function showStatus(message, type) {
