@@ -1,5 +1,5 @@
 // === CONFIG ===
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyIlxixU9XWpfB5sFwOnAJIyw2Pc6VrF8OrSNaNgeQzqVMWNOgLCMVsHGxWYYAdrgdQpQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbylwEnuPCibAsoQtpojMBwrh9KmUXmw1FdzFtwiMdbCJqlEtSplbJqV7_j5l_LblzeYUQ/exec';
 // Replace with your actual Google Apps Script Web App URL
 
 // Sample static menu (replace with dynamic fetch later if needed)
