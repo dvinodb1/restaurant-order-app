@@ -125,47 +125,49 @@ document.getElementById('back-to-cart').addEventListener('click', () => {
   document.getElementById('cart').classList.remove('hidden');
 });
 
-document.getElementById('submit-order').addEventListener('click', async () => {
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const address = document.getElementById('address').value.trim();
+// Handle form submit
+document.getElementById('order-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-  if (!name || !phone) {
-    showStatus('Please fill in name and phone.', 'error');
+  const name = document.getElementById('name').value;
+  const phone = document.getElementById('phone').value;
+  const address = document.getElementById('address').value;
+
+  const selectedItems = Array.from(document.querySelectorAll('input[name="item"]:checked'))
+    .map(cb => cb.value);
+
+  if (selectedItems.length === 0) {
+    showStatus('Please select at least one item.', 'error');
     return;
   }
 
-  // Format items: "Pizza (x2), Burger (x1)"
-  const items = Object.entries(cart)
-    .map(([name, { qty }]) => `${name} (x${qty})`)
-    .join(', ');
+  const order = {
+    name,
+    phone,
+    address,
+    items: selectedItems.join(', ')
+  };
 
- try {
-  const response = await fetch(ORDER_WEBHOOK_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, phone, address, items })
-  });
+  try {
+    const response = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors' // Required for Google Apps Script (but limits response visibility)
+    });
 
-  const result = await response.json(); // ✅ Now you can read the response!
-
-  if (result.success) {
-    showStatus('🎉 Order placed! We’ll call you soon.', 'success');
-    // Reset cart & form
-    cart = {};
+    // Due to no-cors, we can't read response body — assume success
+    showStatus('Order submitted! We’ll call you soon. 🎉', 'success');
     document.getElementById('order-form').reset();
-    document.getElementById('order-form').classList.add('hidden');
-    document.getElementById('cart').classList.add('hidden');
-    document.getElementById('menu-section').classList.remove('hidden');
-    updateCartUI();
-  } else {
-    throw new Error(result.error || 'Unknown error');
+    document.querySelectorAll('input[name="item"]:checked').forEach(el => el.checked = false);
+  } catch (err) {
+    showStatus('Failed to send order. Try again.', 'error');
   }
-} catch (err) {
-  console.error('Submission error:', err);
-  showStatus('❌ Failed to submit. ' + (err.message || 'Please try again.'), 'error');
-}
 });
+
+function showStatus(message, type) {
+  const status = document.getElementById('status');
+  status.textContent = message;
+  status.className = `status-${type}`;
+}
 
 function showStatus(message, type) {
   const el = document.getElementById('status');
