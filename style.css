@@ -7,11 +7,7 @@
   --border: #eee;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
@@ -31,10 +27,7 @@ header {
   padding: 20px 0;
   margin-bottom: 20px;
 }
-header h1 {
-  color: var(--primary);
-  font-size: 2.2rem;
-}
+header h1 { color: var(--primary); font-size: 2.2rem; }
 
 .loading {
   text-align: center;
@@ -44,7 +37,6 @@ header h1 {
 
 .hidden { display: none; }
 
-/* Menu Grid */
 .menu-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -106,7 +98,6 @@ header h1 {
   font-weight: bold;
 }
 
-/* Cart */
 .cart {
   background: white;
   padding: 20px;
@@ -148,7 +139,6 @@ header h1 {
   cursor: not-allowed;
 }
 
-/* Order Form */
 .order-form {
   background: white;
   padding: 20px;
@@ -190,6 +180,5 @@ header h1 {
   color: white;
 }
 
-/* Status Messages */
 .status-success { color: green; font-weight: bold; }
 .status-error { color: red; }
