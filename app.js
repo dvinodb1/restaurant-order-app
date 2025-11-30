@@ -143,6 +143,7 @@ document.getElementById('submit-order')?.addEventListener('click', async () => {
   try {
     const response = await fetch(ORDER_WEBHOOK_URL, {
       method: 'POST',
+      mode: 'no-cors' ,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, phone, address, items })
     });
